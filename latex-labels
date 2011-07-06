@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+$VERBOSE = true
+=begin
+collect labels of BibTeX and LaTeX to make a dictionary
+=end
+
+#assume input encoding is euc so far
+$KCODE = 'u' if RUBY_VERSION < '1.9'
+
+require 'pp'
+require 'kconv'
+require 'enumerator'
+require 'yaml'
+require 'rubygems'
+require 'bibtex'
+#require 'backports/1.9.1/enumerable'
+
+# Collect section titles and captions, with its labels
+# Assume all lablels of the labelables(section, figure, table) 
+# are put at the lines after the labled labeables
+title_label = {}
+last_mtch_title = nil
+ARGF.enum_for(:grep, /
+  (?:
+    # not detect "\begin{equation}" and "\item"
+    # remember the value of the command
+    # detect subsubsubsection as well!!
+    \\(?:sub)*(?:section|caption)\{([^}]*)
+  )
+  |
+  # remember the label
+  (?: \\label\{(.*)\} )
+  /x
+).each{
+  last_match = Regexp.last_match
+  mtch_title = last_match[1]
+  mtch_label = last_match[2]
+  if mtch_title #matched a title
+    warn "Non-labeled title or caption: #{last_mtch_title} at #{ARGF.filename}: #{ARGF.file.lineno}" unless last_mtch_title.nil?
+    last_mtch_title =  mtch_title.toutf8
+  elsif mtch_label #matched a label
+    warn "No title or caption found before \label{#{mtch_label}} at #{ARGF.filename}: #{ARGF.file.lineno} !" if last_mtch_title.nil?
+    title_label[mtch_label.toutf8] = last_mtch_title
+    last_mtch_title = nil
+  else
+    next
+  end
+}
+
+#Write dictionary
+YAML.dump( title_label, File.open('dict-labels.yaml', 'w' ) )
