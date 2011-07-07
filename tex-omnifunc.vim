@@ -17,7 +17,7 @@ function! TeX_Complete(findstart, base)
 		base = VIM.evaluate 'a:base'
 		dict = YAML.load(File.open( 'dict-labels.yaml' ) )
 		sq  = "'"
-		esc = "\\'"
+		esc = "''"
 		comp_info = dict.select{|k,v| k.start_with? base }.map{|pair|
 		  word = pair[0].gsub(sq, esc)
 		  menu = pair[1].gsub(sq, esc)
