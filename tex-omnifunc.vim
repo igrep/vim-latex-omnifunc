@@ -11,7 +11,8 @@ function! TeX_Complete(findstart, base)
 	else
 		let rtn = []
 		ruby <<EOF
-		require 'enumerator'
+		# coding: utf-8
+		$KCODE = 'u' if RUBY_VERSION < '1.9'
 		require 'yaml'
 		base = VIM.evaluate 'a:base'
 		dict = YAML.load(File.open( 'dict-labels.yaml' ) )
