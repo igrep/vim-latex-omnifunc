@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+$VERBOSE = true
+=begin
+Collect BibTeX Labels
+=end
+
+require 'yaml'
+require 'kconv'
+require 'rubygems'
+require 'bibtex'
+require 'backports/1.9.1/enumerable'
+
+$KCODE = 'u' if RUBY_VERSION < '1.9'
+
+YAML.dump(
+  ARGV.each_with_object({}){|file, hsh|
+    BibTeX::Bibliography.parse( File.read(file).toutf8 ).each{|entry|
+      next unless entry.is_a? BibTeX::Entry
+      hsh[entry.key] = "#{entry.author[0]}「#{entry.title}」"
+    }
+  },
+  File.open( 'dict-bib.yaml', 'w' )
+)
